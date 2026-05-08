@@ -1,0 +1,14 @@
+{
+  "name": "pi-retry-fallback-model",
+  "version": "1.0.0",
+  "description": "Pi extension: model request timeout with automatic fallback chain. Cancels hanging requests, switches to a fallback model, and retries automatically.",
+  "keywords": ["pi-package", "timeout", "fallback", "model"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/99degree/pi-retry-fallback-model.git"
+  },
+  "pi": {
+    "extensions": ["./extensions"]
+  }
+}

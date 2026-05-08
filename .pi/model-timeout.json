@@ -1,0 +1,10 @@
+{
+  "timeoutMs": 30000,
+  "fallbackChain": [
+    "minimaxai/minimax-m2.7",
+    "z-ai/glm4.7",
+    "qwen/qwen3-coder-480b-a35b-instruct",
+    "mistralai/mistral-large-3-675b-instruct-2512",
+    "google/gemma-3n-e2b-it"
+  ]
+}
