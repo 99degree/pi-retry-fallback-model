@@ -177,16 +177,16 @@ export default function (pi: ExtensionAPI) {
     ctx.ui.notify(`⏱ Model request timeout after ${config.timeoutMs}ms`, "warning");
 
     // Check for more fallbacks BEFORE aborting the current request.
-    // If none left, we stop interfering entirely — let the request
-    // complete naturally and disable the timeout for subsequent turns
-    // so queued follow-ups don't loop forever.
+    // If none left, we should abort the request completely
     const next = getNextFallback(currentModelId);
     if (!next) {
-      ctx.ui.notify(`✗ No more fallback models. Current: ${currentModelId} — disabling timeout`, "error");
-      enabled = false;
-      timeoutId = null;
-      // Don't abort abortController — let the current request finish
-      // on its own (success, error, or user cancellation).
+      ctx.ui.notify(`✗ No more fallback models. Current: ${currentModelId} — aborting request`, "error");
+      
+      // If we're at the last available model and it still fails, abort the request
+      if (abortController) {
+        abortController.abort();
+        abortController = null;
+      }
       return;
     }
 
@@ -222,6 +222,7 @@ export default function (pi: ExtensionAPI) {
     // retry path), so we ensure a timeout is always in place.
     cleanup();
     
+    // Reset timeout for each new model attempt
     abortController = new AbortController();
     timeoutId = setTimeout(() => tryFallback(ctx), config.timeoutMs);
 
