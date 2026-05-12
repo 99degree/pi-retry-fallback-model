@@ -221,6 +221,7 @@ export default function (pi: ExtensionAPI) {
     // The follow-up retry may bypass before_provider_request (agent internal
     // retry path), so we ensure a timeout is always in place.
     cleanup();
+    
     abortController = new AbortController();
     timeoutId = setTimeout(() => tryFallback(ctx), config.timeoutMs);
 
@@ -229,34 +230,40 @@ export default function (pi: ExtensionAPI) {
   }
 
   // Intercept provider requests — add abort signal & timeout
+  // Intercept provider requests — add standard timeout handling
   pi.on("before_provider_request", (event, ctx) => {
     if (!enabled) return;
 
+    // Clean up any existing timeout
     cleanup();
+    
+    // Set up new timeout handler
     abortController = new AbortController();
     timeoutId = setTimeout(() => tryFallback(ctx), config.timeoutMs);
 
-    // Attach abort signal to provider payload
+    // Attach timeout to provider payload using standard timeout options
     const payload = event.payload as any;
+    
+    // Notify upper level about the timeout settings
+    ctx.ui.notify(`Setting standard timeout of ${config.timeoutMs}ms for the current request`, "info");
+    
     if (payload && typeof payload === 'object') {
       if (payload.options && typeof payload.options === 'object') {
-        payload.options.signal = abortController.signal;
-      } else if (!payload.signal) {
-        payload.signal = abortController.signal;
+        // Add standard timeout to options
+        payload.options.timeout = config.timeoutMs;
+      } else {
+        // Add standard timeout to payload
+        payload.timeout = config.timeoutMs;
       }
     }
 
     return payload;
   });
 
-  // Clean up after response
-  pi.on("after_provider_response", () => {
-    cleanup();
-  });
-
   // Clean up on agent end
   pi.on("agent_end", () => {
     cleanup();
+    
   });
 
   // Register commands
